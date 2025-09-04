@@ -1,21 +1,34 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
 %}
-<h1 align="center">Notes</h1>
-<ul class="list-group list-group-flush" id="notes">
-  {% for note in user.notes %}
+<h1 align="center">Upload PDF</h1>
+<form method="POST" enctype="multipart/form-data">
+  <div class="form-group">
+    <input type="file" name="pdf" accept="application/pdf" class="form-control-file" required>
+  </div>
+  <div align="center">
+    <button type="submit" class="btn btn-primary">Upload PDF</button>
+  </div>
+</form>
+
+<h2 align="center">Your Uploaded PDFs</h2>
+<ul class="list-group list-group-flush" id="pdfs">
+  {% for pdf in user.pdfs %}
   <li class="list-group-item">
-    {{ note.data }}
-    <button type="button" class="close" onClick="deleteNote({{ note.id }})">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <a href="{{ url_for('static', filename='uploads/' ~ pdf.filename) }}" target="_blank">{{ pdf.filename }}</a>
+    ({{ '%.2f'|format(pdf.filesize_mb) }} MB, uploaded {{ pdf.upload_time.strftime('%Y-%m-%d %H:%M') }})
+    <form method="POST" action="{{ url_for('views.ocr_pdf', pdf_id=pdf.id) }}" style="display:inline;">
+      <button type="submit" class="btn btn-sm btn-info">Run OCR</button>
+    </form>
+    {% if pdf.ocr_text %}
+      <br><strong>OCR Result:</strong>
+      <pre style="white-space: pre-wrap;">{{ pdf.ocr_text[:500] }}{% if pdf.ocr_text|length > 500 %}...{% endif %}</pre>
+    {% endif %}
   </li>
   {% endfor %}
 </ul>
-<form method="POST">
-  <textarea name="note" id="note" class="form-control"></textarea>
-  <br />
-  <div align="center">
-    <button type="submit" class="btn btn-primary">Add Note</button>
-  </div>
-</form>
+
+{% if ocr_result %}
+<h3>OCR Output</h3>
+<pre style="white-space: pre-wrap;">{{ ocr_result }}</pre>
+{% endif %}
 {% endblock %}

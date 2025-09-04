@@ -3,11 +3,19 @@ from flask_login import UserMixin
 from sqlalchemy.sql import func
 
 
-class Note(db.Model):
+
+# PDF Data Model
+from datetime import datetime
+class PdfData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    data = db.Column(db.String(10000))
-    date = db.Column(db.DateTime(timezone=True), default=func.now())
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    filename = db.Column(db.String(256), nullable=False)
+    filesize_mb = db.Column(db.Float, nullable=False)
+    upload_time = db.Column(db.DateTime, default=datetime.utcnow)
+    ocr_text = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<PdfData {self.filename} ({self.filesize_mb}MB)>"
 
 
 class User(db.Model, UserMixin):
@@ -15,4 +23,4 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(150), unique=True)
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
-    notes = db.relationship('Note')
+    pdfs = db.relationship('PdfData')
